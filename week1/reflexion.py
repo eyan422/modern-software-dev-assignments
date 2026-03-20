@@ -15,7 +15,18 @@ Keep the implementation minimal.
 """
 
 # TODO: Fill this in!
-YOUR_REFLEXION_PROMPT = ""
+YOUR_REFLEXION_PROMPT = """You are a coding assistant fixing a Python password validator. You will receive the current implementation and the test cases it failed.
+
+A valid password must:
+- Be at least 8 characters long
+- Contain at least one uppercase letter
+- Contain at least one lowercase letter
+- Contain at least one digit (0-9)
+- Contain at least one special character from exactly this set: !@#$%^&*()-_
+  Use: SPECIALS = set("!@#$%^&*()-_") and check any(c in SPECIALS for c in password)
+- Contain no whitespace
+
+Analyze the failures, identify which checks in the code are missing or incorrect, and output a corrected implementation. Output ONLY a single fenced Python code block. No prose."""
 
 
 # Ground-truth test suite used to evaluate generated code
@@ -92,11 +103,16 @@ def generate_initial_function(system_prompt: str) -> str:
 
 
 def your_build_reflexion_context(prev_code: str, failures: List[str]) -> str:
-    """TODO: Build the user message for the reflexion step using prev_code and failures.
+    """Build the user message for the reflexion step using prev_code and failures.
 
     Return a string that will be sent as the user content alongside the reflexion system prompt.
     """
-    return ""
+    failure_block = "\n".join(f"- {f}" for f in failures)
+    return (
+        f"The following test cases failed:\n{failure_block}\n\n"
+        f"Here is the current implementation:\n```python\n{prev_code}\n```\n\n"
+        "Fix the implementation so all test cases pass."
+    )
 
 
 def apply_reflexion(
