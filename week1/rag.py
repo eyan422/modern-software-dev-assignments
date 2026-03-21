@@ -37,7 +37,7 @@ QUESTION = (
 
 
 # TODO: Fill this in!
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = "You are a coding assistant. Use only the API documentation provided in the context to write the function."
 
 
 # For this simple example
@@ -56,6 +56,10 @@ def YOUR_CONTEXT_PROVIDER(corpus: List[str]) -> List[str]:
 
     For example, return [] to simulate missing context, or [corpus[0]] to include the API docs.
     """
+
+    if corpus:
+        return [corpus[0]]
+
     return []
 
 
