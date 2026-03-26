@@ -10,19 +10,14 @@ DATA_DIR = BASE_DIR / "data"
 DB_PATH = DATA_DIR / "app.db"
 
 
-def ensure_data_directory_exists() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-
 def get_connection() -> sqlite3.Connection:
-    ensure_data_directory_exists()
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
     return connection
 
 
 def init_db() -> None:
-    ensure_data_directory_exists()
     with get_connection() as connection:
         cursor = connection.cursor()
         cursor.execute(
@@ -71,8 +66,7 @@ def get_note(note_id: int) -> Optional[sqlite3.Row]:
             "SELECT id, content, created_at FROM notes WHERE id = ?",
             (note_id,),
         )
-        row = cursor.fetchone()
-        return row
+        return cursor.fetchone()
 
 
 def insert_action_items(items: list[str], note_id: Optional[int] = None) -> list[int]:
@@ -98,13 +92,25 @@ def list_action_items(note_id: Optional[int] = None) -> list[sqlite3.Row]:
             )
         else:
             cursor.execute(
-                "SELECT id, note_id, text, done, created_at FROM action_items WHERE note_id = ? ORDER BY id DESC",
+                "SELECT id, note_id, text, done, created_at FROM action_items"
+                " WHERE note_id = ? ORDER BY id DESC",
                 (note_id,),
             )
         return list(cursor.fetchall())
 
 
-def mark_action_item_done(action_item_id: int, done: bool) -> None:
+def get_action_item(action_item_id: int) -> Optional[sqlite3.Row]:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT id, note_id, text, done, created_at FROM action_items WHERE id = ?",
+            (action_item_id,),
+        )
+        return cursor.fetchone()
+
+
+def mark_action_item_done(action_item_id: int, done: bool) -> bool:
+    """Update the done state of an action item. Returns False if not found."""
     with get_connection() as connection:
         cursor = connection.cursor()
         cursor.execute(
@@ -112,5 +118,4 @@ def mark_action_item_done(action_item_id: int, done: bool) -> None:
             (1 if done else 0, action_item_id),
         )
         connection.commit()
-
-
+        return cursor.rowcount > 0
