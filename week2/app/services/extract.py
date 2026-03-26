@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import os
 import re
 from typing import List
-import json
-from typing import Any
+
 from ollama import chat
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -64,6 +63,36 @@ def extract_action_items(text: str) -> List[str]:
         seen.add(lowered)
         unique.append(item)
     return unique
+
+
+class _ActionItems(BaseModel):
+    action_items: list[str]
+
+
+def extract_action_items_llm(text: str, model: str = "mistral:7b") -> List[str]:
+    """Extract action items from text using an Ollama LLM with structured output."""
+    response = chat(
+        model=model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an assistant that extracts action items from notes. "
+                    "Return ALL tasks, to-dos, follow-ups, and suggestions found in the text — "
+                    "including vague, tentative, or low-priority ones like 'look into X' or 'at some point'. "
+                    "Do NOT filter out anything. Respond with a JSON object containing an 'action_items' key with an array of strings."
+                ),
+            },
+            {
+                "role": "user",
+                "content": f"Extract all action items from the following note:\n\n{text}",
+            },
+        ],
+        format=_ActionItems.model_json_schema(),
+        options={"temperature": 0, "num_ctx": 512, "num_predict": 256},
+    )
+    result = _ActionItems.model_validate_json(response.message.content)
+    return result.action_items
 
 
 def _looks_imperative(sentence: str) -> bool:

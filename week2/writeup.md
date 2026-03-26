@@ -20,9 +20,9 @@ This assignment took me about **TODO** hours to do.
 For each exercise, please include what prompts you used to generate the answer, in addition to the location of the generated response. Make sure to clearly add comments in your code documenting which parts are generated.
 
 ### Exercise 1: Scaffold a New Feature
-Prompt: 
+Prompt:
 ```
-TODO
+You are an assistant that extracts action items from notes. Return ALL tasks, to-dos, follow-ups, and suggestions found in the text — including vague, tentative, or low-priority ones like 'look into X' or 'at some point'. Do NOT filter out anything. Respond with a JSON object containing an 'action_items' key with an array of strings.
 ``` 
 
 Generated Code Snippets:
